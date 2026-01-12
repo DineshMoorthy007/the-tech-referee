@@ -49,7 +49,8 @@ export function isRetryableError(error: Error, retryableErrors: string[]): boole
     /timeout/i,
     /connection/i,
     /unavailable/i,
-    /rate limit/i
+    /rate limit/i,
+    /api error/i
   ];
   
   return retryablePatterns.some(pattern => pattern.test(error.message));

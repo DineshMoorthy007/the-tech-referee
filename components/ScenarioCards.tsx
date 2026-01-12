@@ -99,16 +99,16 @@ export default function ScenarioCards({ scenarios }: ScenarioCardsProps) {
                 </div>
               </header>
 
-              {/* Winner Section */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Trophy className={`w-3 h-3 sm:w-4 sm:h-4 ${config.iconColor} animate-pulse`} aria-hidden="true" />
+              {/* Winner Section - Centered */}
+              <div className="mb-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Trophy className={`w-4 h-4 sm:w-5 sm:h-5 ${config.iconColor} animate-pulse`} aria-hidden="true" />
                   <span className="text-gray-300 text-xs sm:text-sm font-medium uppercase tracking-wide">
                     Winner
                   </span>
                 </div>
-                <div className={`${config.accentColor} font-bold text-lg sm:text-xl lg:text-2xl mb-2 break-words animate-glow`}>
-                  {scenario.winner}
+                <div className={`${config.accentColor} font-bold text-xl sm:text-2xl lg:text-3xl mb-3 break-words animate-glow`}>
+                  {scenario.winner.replace(/\*/g, '').trim()}
                 </div>
               </div>
 
@@ -118,7 +118,7 @@ export default function ScenarioCards({ scenarios }: ScenarioCardsProps) {
                   Why
                 </div>
                 <p className="text-gray-300 text-xs sm:text-sm lg:text-base leading-relaxed">
-                  {scenario.reasoning}
+                  {scenario.reasoning.replace(/\*/g, '').trim()}
                 </p>
               </div>
 

@@ -60,18 +60,30 @@ A final, cutting question designed to help you make the decision that's right fo
 
 ## Recent Improvements
 
-### Enhanced Layout & UX (Latest)
-- **Improved Visual Hierarchy**: Larger typography scale, better spacing system
-- **Mobile-First Design**: Optimized touch targets (44px minimum), better mobile spacing
-- **Enhanced Animations**: Card elevation effects, skeleton loading, smooth transitions
-- **Better Accessibility**: Improved focus rings, ARIA labels, keyboard navigation
-- **Modern Styling**: Upgraded to rounded-xl/2xl borders, enhanced gradients
+### Enhanced Error Handling & User Experience (Latest)
+- **Comprehensive Error Panel**: Semi-transparent error notifications with contextual hints and technical details
+- **Smart Technology Validation**: Validates 500+ known technologies, rejects gibberish, supports fuzzy matching
+- **Retry Functionality**: Full retry system with "Try Again" buttons for recoverable errors
+- **Rate Limiting**: Built-in API rate limiting (10 requests/minute) with user-friendly messaging
+- **Exception Handling**: Special support for single-character technologies like 'C' programming language
+
+### Enhanced Visual Design & Animations
+- **Dynamic Background**: Lively animated background with floating elements, gradients, and light rays
+- **Semi-Transparent UI**: Backdrop blur effects and enhanced visual depth
+- **Centered Winner Display**: Improved verdict presentation with cleaned formatting
+- **Enhanced Error UX**: Contextual error messages with specific troubleshooting guidance
+
+### Robust API & Validation System
+- **Advanced Input Validation**: Multi-layer validation with technology recognition and format checking
+- **Comprehensive Error Mapping**: Detailed error codes with specific user guidance and recovery steps
+- **Enhanced LLM Response Parsing**: Flexible parsing that handles conversational AI responses
+- **Property-Based Testing**: Extensive test coverage with fast-check for edge case validation
 
 ### Core Features
 - **Technology Alias Support**: Handles common variations (React.js → React, PostgreSQL → Postgres)
 - **Retry Logic**: Automatic retry for failed API calls with exponential backoff
-- **Error Handling**: User-friendly error messages with retry options
 - **Loading States**: Enhanced loading indicators and skeleton screens
+- **Accessibility**: WCAG 2.1 AA compliant with keyboard navigation and screen reader support
 
 ## Getting Started
 

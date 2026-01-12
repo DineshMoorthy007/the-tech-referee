@@ -101,14 +101,14 @@ describe('retry utilities', () => {
       
       const promise = withRetry(operation, { maxAttempts: 2, baseDelay: 10 });
       
-      // Fast-forward through the delay
-      jest.advanceTimersByTime(50);
+      // Wait for first attempt to fail
+      await jest.runOnlyPendingTimersAsync();
       
       const result = await promise;
       
       expect(result).toBe('success');
       expect(operation).toHaveBeenCalledTimes(2);
-    }, 10000);
+    });
 
     it('stops retrying on non-retryable errors', async () => {
       const nonRetryableError = new AppError(
@@ -138,18 +138,24 @@ describe('retry utilities', () => {
         onRetry 
       });
       
-      jest.advanceTimersByTime(50);
+      await jest.runOnlyPendingTimersAsync();
       await promise;
       
       expect(onRetry).toHaveBeenCalledWith(1, expect.any(Error));
-    }, 10000);
+    });
 
     it('throws last error after max attempts', async () => {
-      const error = new Error('persistent error');
+      // Use real timers for this test to avoid timing issues
+      jest.useRealTimers();
+      
+      const error = new Error('network timeout'); // This will be retryable
       const operation = jest.fn().mockRejectedValue(error);
       
-      await expect(withRetry(operation, { maxAttempts: 2, baseDelay: 10 })).rejects.toThrow('persistent error');
+      await expect(withRetry(operation, { maxAttempts: 2, baseDelay: 10 })).rejects.toThrow('network timeout');
       expect(operation).toHaveBeenCalledTimes(2);
+      
+      // Restore fake timers for other tests
+      jest.useFakeTimers();
     });
   });
 
@@ -206,12 +212,12 @@ describe('retry utilities', () => {
       
       const promise = retryApiCall(apiCall, { baseDelay: 10 });
       
-      jest.advanceTimersByTime(50);
+      await jest.runOnlyPendingTimersAsync();
       
       const result = await promise;
       
       expect(result).toBe('success');
       expect(apiCall).toHaveBeenCalledTimes(2);
-    }, 10000);
+    });
   });
 });
