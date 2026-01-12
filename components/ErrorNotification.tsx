@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, X, RefreshCw, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { AppError, ErrorType } from '@/lib/types';
 
@@ -32,6 +32,14 @@ export default function ErrorNotification({
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsAnimating(false);
+    setTimeout(() => {
+      setIsVisible(false);
+      onDismiss?.();
+    }, 200);
+  }, [onDismiss]);
+
   useEffect(() => {
     if (error) {
       setIsVisible(true);
@@ -48,15 +56,7 @@ export default function ErrorNotification({
       setIsVisible(false);
       setIsAnimating(false);
     }
-  }, [error, autoHide, autoHideDelay]);
-
-  const handleDismiss = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      setIsVisible(false);
-      onDismiss?.();
-    }, 200);
-  };
+  }, [error, autoHide, autoHideDelay, handleDismiss]);
 
   const handleRetry = () => {
     handleDismiss();

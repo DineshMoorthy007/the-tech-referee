@@ -103,7 +103,10 @@ describe('ErrorBoundary', () => {
 
   it('shows technical details in development mode', () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'development',
+      configurable: true
+    });
 
     render(
       <ErrorBoundary>
@@ -113,7 +116,10 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText('Technical Details')).toBeInTheDocument();
 
-    process.env.NODE_ENV = originalEnv;
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: originalEnv,
+      configurable: true
+    });
   });
 
   it('uses custom fallback when provided', () => {

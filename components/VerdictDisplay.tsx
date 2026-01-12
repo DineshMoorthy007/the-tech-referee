@@ -92,7 +92,7 @@ export default function VerdictDisplay({ analysis, loading = false }: VerdictDis
                 </h2>
               </div>
               <p className="text-gray-400 mb-4 lg:mb-6 max-w-3xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
-                One final question to help you make the decision that's right for your specific situation.
+                One final question to help you make the decision that&apos;s right for your specific situation.
               </p>
               <div className="gradient-border">
                 <div className="bg-gray-900/50 rounded-lg p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
@@ -116,7 +116,7 @@ export default function VerdictDisplay({ analysis, loading = false }: VerdictDis
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-yellow-400 animate-pulse-slow">⚖️</span>
           <p className="text-gray-500 text-xs sm:text-sm lg:text-base font-medium">
-            Remember: There is no "best" tool, only the best tool for your specific job.
+            Remember: There is no &ldquo;best&rdquo; tool, only the best tool for your specific job.
           </p>
           <span className="text-yellow-400 animate-pulse-slow">⚖️</span>
         </div>

@@ -620,7 +620,7 @@ describe('MatchupInput Property Tests', () => {
         expect(screen.getByLabelText('Technology 2')).toBeInTheDocument();
 
         // Should have submit button
-        const submitButton = screen.getByRole('button', { type: 'submit' });
+        const submitButton = screen.getByRole('button', { name: /compare/i });
         expect(submitButton).toBeInTheDocument();
       });
 

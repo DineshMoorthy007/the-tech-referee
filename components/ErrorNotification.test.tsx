@@ -189,7 +189,10 @@ describe('ErrorNotification', () => {
 
   it('shows technical details in development mode', () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'development',
+      configurable: true
+    });
 
     const error = new AppError(
       ErrorType.API_ERROR,
@@ -204,7 +207,10 @@ describe('ErrorNotification', () => {
 
     expect(screen.getByText('Technical Details')).toBeInTheDocument();
 
-    process.env.NODE_ENV = originalEnv;
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: originalEnv,
+      configurable: true
+    });
   });
 
   it('handles rate limit errors with specific messaging', () => {

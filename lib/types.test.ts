@@ -88,7 +88,7 @@ const scenarioVerdictArb: fc.Arbitrary<ScenarioVerdict> = fc.record({
   winner: technologyArb,
   reasoning: fc.string({ minLength: 10, maxLength: 200 }),
   context: fc.string({ minLength: 10, maxLength: 100 }),
-});
+}) as fc.Arbitrary<ScenarioVerdict>;
 
 /**
  * Generator for HiddenTax

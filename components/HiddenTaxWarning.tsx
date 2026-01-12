@@ -19,7 +19,7 @@ export default function HiddenTaxWarning({ warning }: HiddenTaxWarningProps) {
       <div className="mb-4 lg:mb-6 animate-fade-in">
         <h2 id="warning-heading" className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center gap-2">
           <span className="text-yellow-400 animate-pulse-slow" role="img" aria-label="Warning sign">⚠️</span>
-          The "Hidden Tax"
+          The &ldquo;Hidden Tax&rdquo;
         </h2>
         <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
           The specific downside you should prepare for with your choice

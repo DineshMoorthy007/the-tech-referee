@@ -160,7 +160,7 @@ export default function Home() {
    * Handle form submission with enhanced error handling
    * Requirements 1.3: Handle loading states and error conditions
    */
-  const handleSubmit = async (tech1: string, tech2: string) => {
+  const handleSubmit = useCallback(async (tech1: string, tech2: string) => {
     setLoading(true);
     setError(null);
     setAnalysis(null);
@@ -188,7 +188,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [makeApiCall]);
 
   /**
    * Handle retry for retryable errors
@@ -197,7 +197,7 @@ export default function Home() {
     if (lastRequest) {
       await handleSubmit(lastRequest.tech1, lastRequest.tech2);
     }
-  }, [lastRequest, makeApiCall]);
+  }, [lastRequest, handleSubmit]);
 
   /**
    * Handle error dismissal

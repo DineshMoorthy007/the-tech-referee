@@ -66,7 +66,7 @@ export default function ScenarioCards({ scenarios }: ScenarioCardsProps) {
           The Verdicts
         </h2>
         <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
-          How the choice changes based on your team's priorities and constraints
+          How the choice changes based on your team&apos;s priorities and constraints
         </p>
       </div>
 

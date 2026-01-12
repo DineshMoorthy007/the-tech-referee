@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Loader2, Zap, Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import { LoadingStateProps } from '@/lib/types';
 
@@ -18,18 +18,18 @@ export default function LoadingState({
   const [displayedMessage, setDisplayedMessage] = useState('');
   const [isTyping, setIsTyping] = useState(true);
 
-  // Progressive loading messages that build anticipation
-  const loadingMessages = [
-    "Analyzing constraints...",
-    "Evaluating trade-offs...", 
-    "Calculating hidden taxes...",
-    "Simulating scenarios...",
-    "Generating verdicts...",
-    "Preparing final analysis..."
-  ];
-
   // Use provided message or cycle through default messages
-  const messages = message ? [message] : loadingMessages;
+  const messages = useMemo(() => {
+    const loadingMessages = [
+      "Analyzing constraints...",
+      "Evaluating trade-offs...", 
+      "Calculating hidden taxes...",
+      "Simulating scenarios...",
+      "Generating verdicts...",
+      "Preparing final analysis..."
+    ];
+    return message ? [message] : loadingMessages;
+  }, [message]);
 
   // Message cycling effect
   useEffect(() => {
