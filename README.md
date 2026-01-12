@@ -181,4 +181,4 @@ Context: Automatically detects aliases, provides startup vs enterprise perspecti
 
 ## License
 
-MIT
+This project is licensed by MIT
