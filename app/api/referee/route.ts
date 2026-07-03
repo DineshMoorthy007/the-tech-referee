@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { callOpenAI, OpenAIError } from '@/lib/openai';
 import { createPromptPackage } from '@/lib/prompts';
@@ -21,12 +22,24 @@ function createErrorResponse(
   status: number = 500,
   details?: any
 ): NextResponse<RefereeResponse> {
+  const errorId = randomUUID();
+  const detailText = details ? (typeof details === 'string' ? details : JSON.stringify(details)) : undefined;
+
+  console.error('Referee API error response:', {
+    errorId,
+    code,
+    status,
+    message,
+    details: detailText,
+    timestamp: new Date().toISOString()
+  });
+
   return NextResponse.json({
     success: false,
     error: {
       code,
       message,
-      details: details ? (typeof details === 'string' ? details : JSON.stringify(details)) : undefined,
+      details: detailText ? `${detailText} (errorId: ${errorId})` : `errorId: ${errorId}`,
       timestamp: new Date().toISOString()
     }
   }, { status });
@@ -163,7 +176,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<RefereeRe
 
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`API route error after ${duration}ms:`, error);
+    console.error('API route crash:', {
+      durationMs: duration,
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error,
+      timestamp: new Date().toISOString()
+    });
 
     // Handle specific error types with better user messages
     if (error instanceof OpenAIError) {
