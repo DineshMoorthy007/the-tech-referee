@@ -20,6 +20,7 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     openaiClient = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      // Add timeout and other configurations to avoid deprecation warnings
       timeout: 30000,
       maxRetries: 2,
     });
