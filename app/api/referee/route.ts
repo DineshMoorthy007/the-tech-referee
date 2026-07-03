@@ -1110,8 +1110,7 @@ function extractSections(response: string): {
           }
 
           if (key === 'tieBreaker') {
-            const questionMatches = trimmedResponse.match(/[^
-?]*\?/g);
+            const questionMatches = trimmedResponse.match(/[^?]*\?/g);
             const lastQuestion = questionMatches?.length ? questionMatches[questionMatches.length - 1].trim() : '';
             if (lastQuestion) {
               sections[key] = lastQuestion;
