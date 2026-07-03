@@ -183,6 +183,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<RefereeRe
         status = 429;
         message = 'Our AI service is currently experiencing high demand. Please try again in a few moments.';
         details = 'This is a temporary issue. The service should be available again shortly.';
+      } else if (error.code === 'MISSING_API_KEY') {
+        status = 500;
+        code = 'SERVICE_ERROR';
+        message = 'Service configuration error. Our team has been notified.';
+        details = 'OPENAI_API_KEY is not available in this deployment. Set it in Vercel project environment variables and redeploy.';
       } else if (error.code === 'invalid_api_key') {
         status = 500;
         message = 'Service configuration error. Our team has been notified.';
@@ -1043,11 +1048,11 @@ function extractSections(response: string): {
     
     // Define section patterns with more flexible matching
     const patterns = {
-      matchup: /###\s*1\..*?(?:🥊|Matchup)\s*([\s\S]*?)(?=###\s*2\.|$)/i,
-      taleOfTheTape: /###\s*2\..*?(?:📊|Tale of the Tape)\s*([\s\S]*?)(?=###\s*3\.|$)/i,
-      verdicts: /###\s*3\..*?(?:⚖️|Verdicts)\s*([\s\S]*?)(?=###\s*4\.|$)/i,
-      hiddenTax: /###\s*4\..*?(?:⚠️|Hidden Tax)\s*([\s\S]*?)(?=###\s*5\.|$)/i,
-      tieBreaker: /###\s*5\..*?(?:🏁|Tie-Breaker)\s*([\s\S]*?)$/i
+      matchup: /###\s*1\.[\s\S]*?(?:🥊\s*)?The\s+Matchup\s*\n?([\s\S]*?)(?=###\s*2\.|###\s*\d+\.|$)/i,
+      taleOfTheTape: /###\s*2\.[\s\S]*?(?:📊\s*)?The\s+Tale\s+of\s+the\s+Tape\s*\n?([\s\S]*?)(?=###\s*3\.|###\s*\d+\.|$)/i,
+      verdicts: /###\s*3\.[\s\S]*?(?:⚖️\s*)?The\s+Verdicts\s*\n?([\s\S]*?)(?=###\s*4\.|###\s*\d+\.|$)/i,
+      hiddenTax: /###\s*4\.[\s\S]*?(?:⚠️\s*)?The\s+"?Hidden\s+Tax"?\s*\n?([\s\S]*?)(?=###\s*5\.|###\s*\d+\.|$)/i,
+      tieBreaker: /###\s*5\.[\s\S]*?(?:🏁\s*)?The\s+Tie-?Breaker\s*\n?([\s\S]*?)$/i
     };
 
     const sections: Record<string, string> = {};
@@ -1059,6 +1064,21 @@ function extractSections(response: string): {
           console.log(`Failed to match section: ${key}`);
           console.log(`Pattern: ${pattern}`);
           console.log(`Looking for section in: ${trimmedResponse.substring(0, 1000)}`);
+
+          const looseFallbacks: Record<string, RegExp> = {
+            matchup: /(?:🥊|Matchup)[\s\S]*?(?:\n|\r\n)([\s\S]*?)(?=###\s*2\.|$)/i,
+            taleOfTheTape: /(?:📊|Tale of the Tape)[\s\S]*?(?:\n|\r\n)([\s\S]*?)(?=###\s*3\.|$)/i,
+            verdicts: /(?:⚖️|Verdicts)[\s\S]*?(?:\n|\r\n)([\s\S]*?)(?=###\s*4\.|$)/i,
+            hiddenTax: /(?:⚠️|Hidden Tax)[\s\S]*?(?:\n|\r\n)([\s\S]*?)(?=###\s*5\.|$)/i,
+            tieBreaker: /(?:🏁|Tie-?Breaker)[\s\S]*?(?:\n|\r\n)([\s\S]*?)$/i
+          };
+
+          const fallbackMatch = trimmedResponse.match(looseFallbacks[key]);
+          if (fallbackMatch && fallbackMatch[1] && fallbackMatch[1].trim().length > 0) {
+            sections[key] = fallbackMatch[1].trim();
+            console.log(`Recovered section ${key} using fallback parser, length: ${sections[key].length}`);
+            continue;
+          }
           
           return {
             success: false,
