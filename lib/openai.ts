@@ -6,12 +6,27 @@ if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
 }
 
 // OpenAI client configuration for Tech Referee
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  // Add timeout and other configurations to avoid deprecation warnings
-  timeout: 30000,
-  maxRetries: 2,
-});
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new OpenAIError(
+      'OpenAI API key is not configured',
+      'MISSING_API_KEY',
+      { env: 'OPENAI_API_KEY' }
+    );
+  }
+
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: 30000,
+      maxRetries: 2,
+    });
+  }
+
+  return openaiClient;
+}
 
 // Configuration constants for OpenAI API calls
 export const OPENAI_CONFIG = {
@@ -195,6 +210,7 @@ export async function callOpenAI(prompt: string): Promise<string> {
 
   try {
     console.log('Making OpenAI API call with prompt length:', prompt.length);
+    const openai = getOpenAIClient();
     
     const completion = await openai.chat.completions.create({
       ...OPENAI_CONFIG,
