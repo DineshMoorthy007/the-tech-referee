@@ -1100,6 +1100,25 @@ function extractSections(response: string): {
             console.log(`Recovered section ${key} using fallback parser, length: ${sections[key].length}`);
             continue;
           }
+
+          // Final fallback: use the whole response for sections that can be
+          // recovered later by downstream parsers, instead of failing the request.
+          if (key === 'verdicts' || key === 'hiddenTax') {
+            sections[key] = trimmedResponse;
+            console.log(`Using full response fallback for ${key}`);
+            continue;
+          }
+
+          if (key === 'tieBreaker') {
+            const questionMatches = trimmedResponse.match(/[^
+?]*\?/g);
+            const lastQuestion = questionMatches?.length ? questionMatches[questionMatches.length - 1].trim() : '';
+            if (lastQuestion) {
+              sections[key] = lastQuestion;
+              console.log(`Recovered tieBreaker from last question: ${lastQuestion}`);
+              continue;
+            }
+          }
           
           return {
             success: false,
