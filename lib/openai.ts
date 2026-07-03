@@ -40,11 +40,18 @@ export const OPENAI_CONFIG = {
 } as const;
 
 export const GEMINI_CONFIG = {
-  model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
   temperature: 0.7,
   maxOutputTokens: 2000,
   topP: 1,
 } as const;
+
+const GEMINI_MODEL_FALLBACKS = [
+  GEMINI_CONFIG.model,
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
+].filter((model, index, models) => models.indexOf(model) === index);
 
 // Error handling for OpenAI API responses
 export class OpenAIError extends Error {
@@ -97,75 +104,129 @@ async function callGemini(prompt: string): Promise<string> {
 
   try {
     console.log('Making Gemini API call with prompt length:', prompt.length);
+    const attemptOrder = GEMINI_MODEL_FALLBACKS.map((model) => model).filter(Boolean);
+    const fallbackErrors: Array<{ model: string; code: string; message: string }> = [];
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_CONFIG.model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              {
-                text: 'You are The Tech Referee, a senior solutions architect and impartial arbiter who helps developers choose between competing technologies by focusing on trade-offs, constraints, and hidden costs.'
+    for (const model of attemptOrder) {
+      try {
+        console.log(`Trying Gemini model: ${model}`);
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+          {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              systemInstruction: {
+                parts: [
+                  {
+                    text: 'You are The Tech Referee, a senior solutions architect and impartial arbiter who helps developers choose between competing technologies by focusing on trade-offs, constraints, and hidden costs.'
+                  }
+                ]
+              },
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: prompt }]
+                }
+              ],
+              generationConfig: {
+                temperature: GEMINI_CONFIG.temperature,
+                topP: GEMINI_CONFIG.topP,
+                maxOutputTokens: GEMINI_CONFIG.maxOutputTokens
               }
-            ]
-          },
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: prompt }]
-            }
-          ],
-          generationConfig: {
-            temperature: GEMINI_CONFIG.temperature,
-            topP: GEMINI_CONFIG.topP,
-            maxOutputTokens: GEMINI_CONFIG.maxOutputTokens
+            })
           }
-        })
+        );
+
+        const payload = await response.json().catch(async () => ({
+          raw: await response.text().catch(() => '')
+        }));
+
+        if (!response.ok) {
+          const errorMessage = payload?.error?.message || payload?.raw || `HTTP ${response.status}`;
+          const errorStatus = payload?.error?.status || response.status;
+
+          let errorCode = 'API_ERROR';
+          if (response.status === 429) {
+            errorCode = 'QUOTA_EXCEEDED';
+          } else if (response.status === 400 || response.status === 401 || response.status === 403) {
+            errorCode = 'CONFIGURATION_ERROR';
+          } else if (response.status === 404) {
+            errorCode = 'MODEL_NOT_FOUND';
+          }
+
+          const mappedError = new OpenAIError(errorMessage, errorCode, {
+            provider: 'gemini',
+            model,
+            status: errorStatus,
+            payload
+          });
+
+          const retryableModelError =
+            errorCode === 'MODEL_NOT_FOUND' ||
+            errorCode === 'API_ERROR' ||
+            errorMessage.toLowerCase().includes('not found') ||
+            errorMessage.toLowerCase().includes('not supported');
+
+          if (retryableModelError && model !== attemptOrder[attemptOrder.length - 1]) {
+            fallbackErrors.push({ model, code: errorCode, message: errorMessage });
+            continue;
+          }
+
+          throw mappedError;
+        }
+
+        const responseText = payload?.candidates?.[0]?.content?.parts
+          ?.map((part: { text?: string }) => part.text || '')
+          .join('')
+          .trim();
+
+        if (!responseText) {
+          throw new OpenAIError(
+            'No response received from Gemini',
+            'EMPTY_RESPONSE',
+            { provider: 'gemini', model, payload }
+          );
+        }
+
+        console.log(`Gemini response length from ${model}:`, responseText.length);
+        return responseText;
+      } catch (error) {
+        if (error instanceof OpenAIError) {
+          const message = String(error.message || '').toLowerCase();
+          const retryable =
+            error.code === 'MODEL_NOT_FOUND' ||
+            message.includes('not found') ||
+            message.includes('not supported');
+
+          if (retryable && model !== attemptOrder[attemptOrder.length - 1]) {
+            fallbackErrors.push({ model, code: error.code, message: error.message });
+            continue;
+          }
+
+          if (fallbackErrors.length > 0) {
+            error.details = {
+              ...(typeof error.details === 'object' && error.details ? error.details : {}),
+              fallbackErrors
+            };
+          }
+
+          throw error;
+        }
+
+        throw error;
       }
+    }
+
+    throw new OpenAIError(
+      'No supported Gemini model responded successfully',
+      'MODEL_NOT_FOUND',
+      { provider: 'gemini', attemptedModels: attemptOrder, fallbackErrors }
     );
-
-    const payload = await response.json().catch(async () => ({
-      raw: await response.text().catch(() => '')
-    }));
-
-    if (!response.ok) {
-      const errorMessage = payload?.error?.message || payload?.raw || `HTTP ${response.status}`;
-      const errorStatus = payload?.error?.status || response.status;
-
-      let errorCode = 'API_ERROR';
-      if (response.status === 429) {
-        errorCode = 'QUOTA_EXCEEDED';
-      } else if (response.status === 400 || response.status === 401 || response.status === 403) {
-        errorCode = 'CONFIGURATION_ERROR';
-      }
-
-      throw new OpenAIError(errorMessage, errorCode, {
-        provider: 'gemini',
-        status: errorStatus,
-        payload
-      });
-    }
-
-    const responseText = payload?.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part.text || '')
-      .join('')
-      .trim();
-
-    if (!responseText) {
-      throw new OpenAIError(
-        'No response received from Gemini',
-        'EMPTY_RESPONSE',
-        { provider: 'gemini', payload }
-      );
-    }
-
-    console.log('Gemini response length:', responseText.length);
-    return responseText;
   } catch (error) {
     console.error('Gemini API call failed:', error);
 
