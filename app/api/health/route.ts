@@ -7,8 +7,10 @@ export async function GET() {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
+      geminiConfigured: !!process.env.GEMINI_API_KEY,
       openaiConfigured: !!process.env.OPENAI_API_KEY,
-      apiKeyLength: process.env.OPENAI_API_KEY?.length || 0
+      apiKeyLength: process.env.GEMINI_API_KEY?.length || process.env.OPENAI_API_KEY?.length || 0,
+      llmProvider: process.env.GEMINI_API_KEY ? 'gemini' : process.env.OPENAI_API_KEY ? 'openai' : 'none'
     };
 
     return NextResponse.json(health);
